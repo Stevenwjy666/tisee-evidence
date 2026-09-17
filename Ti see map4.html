@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>高德多点标记弹窗</title>
+<style>
+*{margin:0;padding:0;}
+html, body, #container {
+  width:100%;
+  height:100%;
+}
+</style>
+</head>
+<body>
+<div id="container"></div>
+
+<script>
+window._AMapSecurityConfig = {
+  securityJsCode:'a9273c8f4151dee1be39a5caad021fd1',
+};
+</script>
+<script type="text/javascript" src="https://webapi.amap.com/maps?v=2.0&key=8fa18f6c21787c1c03274ae34fa95829"></script>
+
+<script>
+// 直接初始化地图，移除了导致白屏的loadPlugin
+var map = new AMap.Map("container", {
+  zoom:14,
+  center:[121.10,31.45]
+});
+
+var infoWindow = new AMap.InfoWindow({
+  offset: new AMap.Pixel(0, -30),
+});
+
+//点位1
+var marker1 = new AMap.Marker({
+  position: new AMap.LngLat(121.10,31.45),
+  title:"点位A"
+});
+marker1.on('click',function(){
+  infoWindow.setContent(`
+    <h4>点位A｜项目基地</h4>
+    <p>服务设计项目线下场地</p>
+  `);
+  infoWindow.open(map, marker1.getPosition());
+});
+map.add(marker1);
+
+//点位2
+var marker2 = new AMap.Marker({
+  position: new AMap.LngLat(121.13,31.47),
+  title:"点位B"
+});
+marker2.on('click',function(){
+  infoWindow.setContent(`
+    <h4>点位B｜调研社区</h4>
+    <p>用户访谈与实地观察地点</p>
+  `);
+  infoWindow.open(map, marker2.getPosition());
+});
+map.add(marker2);
+
+//点位3
+var marker3 = new AMap.Marker({
+  position: new AMap.LngLat(121.07,31.43),
+  title:"点位C"
+});
+marker3.on('click',function(){
+  infoWindow.setContent(`
+    <h4>点位C｜合作门店</h4>
+    <p>试点落地场景</p>
+  `);
+  infoWindow.open(map, marker3.getPosition());
+});
+map.add(marker3);
+</script>
+</body>
+</html>
