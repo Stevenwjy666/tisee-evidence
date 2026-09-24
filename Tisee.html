@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>照片地图</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 100%; height: 100%; overflow: hidden; font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'PingFang SC', 'Helvetica Neue', sans-serif; }
+  #map { width: 100%; height: 100%; }
+
+  /* ==== 顶部标题栏 ==== */
+  .top-bar {
+    position: absolute; top: 0; left: 0; right: 0;
+    z-index: 1000;
+    padding: env(safe-area-inset-top, 12px) 20px 10px;
+    background: linear-gradient(to bottom, rgba(255,255,255,0.92), rgba(255,255,255,0.75) 70%, transparent);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    display: flex; align-items: center; justify-content: space-between;
+    pointer-events: none;
+  }
+  .top-bar .title { font-size: 17px; font-weight: 700; color: #1d1d1f; }
+  .top-bar .subtitle { font-size: 12px; color: #86868b; margin-top: 1px; }
+
+  /* ==== 自定义照片标记 ==== */
+  .photo-marker {
+    width: 60px; height: 60px;
+    border-radius: 50%;
+    border: 3px solid #fff;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.3);
+    overflow: hidden;
+    cursor: pointer;
+    transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+    position: relative;
+  }
+  .photo-marker:hover { transform: scale(1.1); }
+  .photo-marker img { width: 100%; height: 100%; object-fit: cover; }
+  .photo-marker .count-badge {
+    position: absolute; bottom: -2px; right: -2px;
+    background: #0071e3; color: #fff;
+    font-size: 10px; font-weight: 600;
+    min-width: 20px; height: 20px;
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    padding: 0 5px;
+    border: 2px solid #fff;
+  }
+
+  /* 放大选中态 */
+  .photo-marker.active {
+    transform: scale(1.25);
+    z-index: 10;
+  }
+
+  /* ==== 底部弹出面板 ==== */
+  .backdrop {
+    position: absolute; inset: 0;
+    background: rgba(0,0,0,0.25);
+    z-index: 2000;
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.3s;
+  }
+  .backdrop.show { opacity: 1; pointer-events: auto; }
+
+  .bottom-sheet {
+    position: absolute; bottom: 0; left: 0; right: 0;
+    z-index: 2001;
+    background: rgba(255,255,255,0.92);
+    backdrop-filter: blur(30px) saturate(180%);
+    -webkit-backdrop-filter: blur(30px) saturate(180%);
+    border-radius: 20px 20px 0 0;
+    max-height: 65vh;
+    transform: translateY(100%);
+    transition: transform 0.4s cubic-bezier(0.32, 0.72, 0, 1);
+    display: flex; flex-direction: column;
+    box-shadow: 0 -4px 24px rgba(0,0,0,0.12);
+  }
+  .bottom-sheet.show { transform: translateY(0); }
+
+  .sheet-handle {
+    width: 36px; height: 5px;
+    background: #d1d1d6;
+    border-radius: 3px;
+    margin: 8px auto 0;
+    flex-shrink: 0;
+  }
+  .sheet-header {
+    padding: 12px 20px 8px;
+    flex-shrink: 0;
+  }
+  .sheet-header .place-name {
+    font-size: 22px; font-weight: 700; color: #1d1d1f;
+    letter-spacing: -0.3px;
+  }
+  .sheet-header .photo-count {
+    font-size: 13px; color: #86868b; margin-top: 2px;
+  }
+  .sheet-close {
+    position: absolute; top: 12px; right: 16px;
+    width: 30px; height: 30px;
+    background: rgba(120,120,128,0.12);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    font-size: 16px; color: #86868b;
+    border: none;
+  }
+  .sheet-close:hover { background: rgba(120,120,128,0.2); }
+
+  .photo-grid {
+    padding: 8px 12px 24px;
+    overflow-y: auto;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 3px;
+    -webkit-overflow-scrolling: touch;
+  }
+  .photo-grid .grid-item {
+    aspect-ratio: 1;
+    border-radius: 6px;
+    overflow: hidden;
+    cursor: pointer;
+    background: #f0f0f0;
+  }
+  .photo-grid .grid-item img {
+    width: 100%; height: 100%; object-fit: cover;
+    transition: transform 0.2s;
+  }
+  .photo-grid .grid-item:hover img { transform: scale(1.05); }
+
+  /* ==== 全屏照片查看器 ==== */
+  .photo-viewer {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.95);
+    z-index: 3000;
+    display: flex; flex-direction: column;
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.3s;
+  }
+  .photo-viewer.show { opacity: 1; pointer-events: auto; }
+
+  .viewer-topbar {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: env(safe-area-inset-top, 12px) 16px 8px;
+    color: #fff;
+  }
+  .viewer-topbar .close-btn {
+    width: 32px; height: 32px;
+    background: rgba(255,255,255,0.15);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; border: none; color: #fff; font-size: 18px;
+  }
+  .viewer-topbar .counter {
+    font-size: 15px; font-weight: 500; color: rgba(255,255,255,0.9);
+  }
+
+  .viewer-image-area {
+    flex: 1;
+    display: flex; align-items: center; justify-content: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .viewer-image-area img {
+    max-width: 100%; max-height: 100%;
+    object-fit: contain;
+    transition: opacity 0.25s;
+  }
+
+  .viewer-nav {
+    position: absolute; top: 50%; transform: translateY(-50%);
+    width: 40px; height: 40px;
+    background: rgba(255,255,255,0.12);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; border: none; color: #fff; font-size: 18px;
+    z-index: 5;
+  }
+  .viewer-nav.prev { left: 12px; }
+  .viewer-nav.next { right: 12px; }
+
+  .viewer-caption {
+    padding: 8px 20px 30px;
+    text-align: center;
+    color: rgba(255,255,255,0.8);
+    font-size: 14px;
+  }
+
+  /* ==== 底部地点列表小条 ==== */
+  .bottom-dots {
+    position: absolute; bottom: 16px; left: 50%;
+    transform: translateX(-50%);
+    z-index: 999;
+    display: flex; gap: 6px;
+    background: rgba(255,255,255,0.85);
+    backdrop-filter: blur(15px);
+    padding: 8px 14px;
+    border-radius: 20px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+  }
+  .bottom-dots .dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: #c7c7cc;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .bottom-dots .dot.active { background: #0071e3; transform: scale(1.3); }
+
+  /* 移动端适配 */
+  @media (max-width: 480px) {
+    .photo-marker { width: 52px; height: 52px; }
+    .photo-grid { grid-template-columns: repeat(3, 1fr); gap: 3px; }
+  }
+</style>
+</head>
+<body>
+
+<div id="map"></div>
+
+<!-- 顶部栏 -->
+<div class="top-bar">
+  <div>
+    <div class="title">我的照片</div>
+    <div class="subtitle" id="totalCount">-- 张照片 · -- 个地点</div>
+  </div>
+</div>
+
+<!-- 地点指示点 -->
+<div class="bottom-dots" id="bottomDots"></div>
+
+<!-- 遮罩 -->
+<div class="backdrop" id="backdrop"></div>
+
+<!-- 底部面板 -->
+<div class="bottom-sheet" id="bottomSheet">
+  <div class="sheet-handle"></div>
+  <button class="sheet-close" id="sheetClose">✕</button>
+  <div class="sheet-header">
+    <div class="place-name" id="placeName">地点名</div>
+    <div class="photo-count" id="placeCount">0 张照片</div>
+  </div>
+  <div class="photo-grid" id="photoGrid"></div>
+</div>
+
+<!-- 全屏查看器 -->
+<div class="photo-viewer" id="photoViewer">
+  <div class="viewer-topbar">
+    <button class="close-btn" id="viewerClose">✕</button>
+    <div class="counter" id="viewerCounter">1 / 5</div>
+    <div style="width:32px"></div>
+  </div>
+  <div class="viewer-image-area">
+    <button class="viewer-nav prev" id="viewerPrev">‹</button>
+    <img id="viewerImg" src="" alt="">
+    <button class="viewer-nav next" id="viewerNext">›</button>
+  </div>
+  <div class="viewer-caption" id="viewerCaption"></div>
+</div>
+
+<!-- 高德安全密钥 -->
+<script>
+  window._AMapSecurityConfig = {
+    securityJsCode: 'a9273c8f4151dee1be39a5caad021fd1'
+  };
+</script>
+<script src="https://webapi.amap.com/maps?v=2.0&key=8fa18f6c21787c1c03274ae34fa95829&plugin=AMap.Scale"></script>
+
+<script>
+// ==========================================
+//  👇👇👇  在这里修改你的地点和照片数据  👆👆👆
+// ==========================================
+const locations = [
+  {
+    name: "苏州拙政园",
+    lng: 120.6296, lat: 31.3208,
+    photos: [
+      { url: "https://picsum.photos/seed/suzhou1/600/600", caption: "拙政园的荷花池" },
+      { url: "https://picsum.photos/seed/suzhou2/600/600", caption: "亭台楼阁" },
+      { url: "https://picsum.photos/seed/suzhou3/600/600", caption: "长廊" },
+      { url: "https://picsum.photos/seed/suzhou4/600/600", caption: "假山石" },
+      { url: "https://picsum.photos/seed/suzhou5/600/600", caption: "倒影" },
+    ]
+  },
+  {
+    name: "杭州西湖",
+    lng: 120.1489, lat: 30.2741,
+    photos: [
+      { url: "https://picsum.photos/seed/hangzhou1/600/600", caption: "西湖落日" },
+      { url: "https://picsum.photos/seed/hangzhou2/600/600", caption: "断桥残雪" },
+      { url: "https://picsum.photos/seed/hangzhou3/600/600", caption: "雷峰塔" },
+      { url: "https://picsum.photos/seed/hangzhou4/600/600", caption: "苏堤春晓" },
+    ]
+  },
+  {
+    name: "上海外滩",
+    lng: 121.4900, lat: 31.2400,
+    photos: [
+      { url: "https://picsum.photos/seed/shanghai1/600/600", caption: "外滩夜景" },
+      { url: "https://picsum.photos/seed/shanghai2/600/600", caption: "陆家嘴天际线" },
+      { url: "https://picsum.photos/seed/shanghai3/600/600", caption: "万国建筑" },
+      { url: "https://picsum.photos/seed/shanghai4/600/600", caption: "黄浦江" },
+      { url: "https://picsum.photos/seed/shanghai5/600/600", caption: "外白渡桥" },
+      { url: "https://picsum.photos/seed/shanghai6/600/600", caption: "滨江大道" },
+    ]
+  },
+  {
+    name: "北京故宫",
+    lng: 116.3974, lat: 39.9163,
+    photos: [
+      { url: "https://picsum.photos/seed/beijing1/600/600", caption: "太和殿" },
+      { url: "https://picsum.photos/seed/beijing2/600/600", caption: "角楼" },
+      { url: "https://picsum.photos/seed/beijing3/600/600", caption: "红墙黄瓦" },
+      { url: "https://picsum.photos/seed/beijing4/600/600", caption: "御花园" },
+    ]
+  },
+  {
+    name: "成都宽窄巷子",
+    lng: 104.0665, lat: 30.6630,
+    photos: [
+      { url: "https://picsum.photos/seed/chengdu1/600/600", caption: "宽窄巷子" },
+      { url: "https://picsum.photos/seed/chengdu2/600/600", caption: "茶馆" },
+      { url: "https://picsum.photos/seed/chengdu3/600/600", caption: "小吃街" },
+    ]
+  },
+  {
+    name: "厦门鼓浪屿",
+    lng: 118.0665, lat: 24.4470,
+    photos: [
+      { url: "https://picsum.photos/seed/xiamen1/600/600", caption: "海边日落" },
+      { url: "https://picsum.photos/seed/xiamen2/600/600", caption: "老别墅" },
+      { url: "https://picsum.photos/seed/xiamen3/600/600", caption: "钢琴博物馆" },
+      { url: "https://picsum.photos/seed/xiamen4/600/600", caption: "日光岩" },
+      { url: "https://picsum.photos/seed/xiamen5/600/600", caption: "港仔后沙滩" },
+    ]
+  },
+];
+
+// ==========================================
+//  以下为程序逻辑，一般不用改
+// ==========================================
+
+let map, currentLocationIndex = -1, viewerIndex = 0;
+
+// 初始化地图
+function initMap() {
+  map = new AMap.Map('map', {
+    zoom: 4.5,
+    center: [112, 33],
+    mapStyle: 'amap://styles/whitesmoke',
+    viewMode: '2D',
+    resizeEnable: true,
+  });
+
+  // 为每个地点创建照片标记
+  locations.forEach((loc, idx) => {
+    const markerContent = document.createElement('div');
+    markerContent.className = 'photo-marker';
+    markerContent.innerHTML = `
+      <img src="${loc.photos[0].url}" alt="${loc.name}" loading="lazy">
+      <div class="count-badge">${loc.photos.length}</div>
+    `;
+
+    const marker = new AMap.Marker({
+      position: [loc.lng, loc.lat],
+      content: markerContent,
+      offset: new AMap.Pixel(-30, -30),
+      anchor: 'center',
+      zIndex: 10,
+    });
+
+    marker.on('click', () => {
+      openLocation(idx, marker);
+    });
+
+    map.add(marker);
+    loc._marker = marker;
+  });
+
+  // 统计总数
+  const totalPhotos = locations.reduce((s, l) => s + l.photos.length, 0);
+  document.getElementById('totalCount').textContent =
+    `${totalPhotos} 张照片 · ${locations.length} 个地点`;
+
+  // 底部地点 dots
+  const dotsBar = document.getElementById('bottomDots');
+  locations.forEach((loc, i) => {
+    const dot = document.createElement('div');
+    dot.className = 'dot';
+    dot.title = loc.name;
+    dot.onclick = () => {
+      map.setZoomAndCenter(13, [loc.lng, loc.lat]);
+      openLocation(i, loc._marker);
+    };
+    dotsBar.appendChild(dot);
+  });
+}
+
+// 打开地点
+function openLocation(idx, marker) {
+  currentLocationIndex = idx;
+  const loc = locations[idx];
+
+  // 高亮标记
+  document.querySelectorAll('.photo-marker').forEach(m => m.classList.remove('active'));
+  if (marker) {
+    const el = marker.domEl || (loc._marker && loc._marker.domEl);
+    if (el) el.classList.add('active');
+  }
+
+  // 更新底部 dots
+  document.querySelectorAll('.bottom-dots .dot').forEach((d, i) => {
+    d.classList.toggle('active', i === idx);
+  });
+
+  // 填充面板
+  document.getElementById('placeName').textContent = loc.name;
+  document.getElementById('placeCount').textContent = `${loc.photos.length} 张照片`;
+
+  const grid = document.getElementById('photoGrid');
+  grid.innerHTML = '';
+  loc.photos.forEach((photo, pi) => {
+    const item = document.createElement('div');
+    item.className = 'grid-item';
+    item.innerHTML = `<img src="${photo.url}" alt="${photo.caption}" loading="lazy">`;
+    item.onclick = () => openViewer(idx, pi);
+    grid.appendChild(item);
+  });
+
+  // 显示面板
+  document.getElementById('backdrop').classList.add('show');
+  document.getElementById('bottomSheet').classList.add('show');
+
+  // 地图居中
+  map.setZoomAndCenter(13, [loc.lng, loc.lat]);
+}
+
+// 关闭地点面板
+function closeSheet() {
+  document.getElementById('backdrop').classList.remove('show');
+  document.getElementById('bottomSheet').classList.remove('show');
+  document.querySelectorAll('.photo-marker').forEach(m => m.classList.remove('active'));
+}
+
+// 全屏查看器
+function openViewer(locIdx, photoIdx) {
+  viewerIndex = photoIdx;
+  updateViewer();
+  document.getElementById('photoViewer').classList.add('show');
+}
+
+function updateViewer() {
+  const loc = locations[currentLocationIndex];
+  if (!loc) return;
+  const photo = loc.photos[viewerIndex];
+  document.getElementById('viewerImg').src = photo.url;
+  document.getElementById('viewerCaption').textContent = photo.caption || '';
+  document.getElementById('viewerCounter').textContent =
+    `${viewerIndex + 1} / ${loc.photos.length}`;
+}
+
+function closeViewer() {
+  document.getElementById('photoViewer').classList.remove('show');
+}
+
+function navViewer(dir) {
+  const loc = locations[currentLocationIndex];
+  if (!loc) return;
+  viewerIndex = (viewerIndex + dir + loc.photos.length) % loc.photos.length;
+  updateViewer();
+}
+
+// 事件绑定
+document.getElementById('sheetClose').onclick = closeSheet;
+document.getElementById('backdrop').onclick = closeSheet;
+document.getElementById('viewerClose').onclick = closeViewer;
+document.getElementById('viewerPrev').onclick = () => navViewer(-1);
+document.getElementById('viewerNext').onclick = () => navViewer(1);
+
+// 键盘
+document.addEventListener('keydown', (e) => {
+  if (document.getElementById('photoViewer').classList.contains('show')) {
+    if (e.key === 'Escape') closeViewer();
+    if (e.key === 'ArrowLeft') navViewer(-1);
+    if (e.key === 'ArrowRight') navViewer(1);
+  } else if (document.getElementById('bottomSheet').classList.contains('show')) {
+    if (e.key === 'Escape') closeSheet();
+  }
+});
+
+// 启动
+window.onload = initMap;
+</script>
+</body>
+</html>
