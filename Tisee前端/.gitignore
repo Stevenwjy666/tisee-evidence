@@ -1,0 +1,44 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+node_modules
+.next
+out
+dist
+dist-ssr
+*.local
+*.tsbuildinfo
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Secrets and local-only project history
+.env
+.env.*
+!.env.example
+artifacts/
+.codex/
+docs/research/
+docs/airbnb-cn-homepage-research.md
+docs/BACKEND_HANDOFF.md
+scripts/sync-skills.mjs
+scripts/sync-agent-rules.sh
+scripts/cdp-airbnb-states.mjs
+scripts/cdp-inspect-airbnb.mjs
+scripts/cdp-smoke-local.mjs
+scripts/measure-detail.mjs
+*.zip
