@@ -1,0 +1,55 @@
+.petroglyph-icon {
+  position: relative;
+  display: inline-block;
+  width: 40px;
+  height: 40px;
+  flex: 0 0 40px;
+  transform-origin: center;
+  pointer-events: none;
+}
+
+.petroglyph-still { width: 100%; height: 100%; object-fit: contain; }
+.petroglyph-frames { position: absolute; inset: 0; background-repeat: no-repeat; opacity: 0; }
+.petroglyph-routes .petroglyph-frames { background-image: url('/icons/petroglyph/routes-frames.webp'); background-size: 1200% 100%; }
+.petroglyph-experiences .petroglyph-frames { background-image: url('/icons/petroglyph/experiences-frames.webp'); background-size: 3100% 100%; }
+
+.petroglyph-all.petroglyph-playing { animation: petroglyph-spin 1.5s cubic-bezier(.2,.75,.25,1); }
+.petroglyph-homes.petroglyph-playing { animation: petroglyph-squish .68s cubic-bezier(.22,.72,.2,1); }
+.petroglyph-services.petroglyph-playing { transform-origin: 50% 90%; animation: petroglyph-sway 1.8s ease-in-out; }
+.petroglyph-routes.petroglyph-playing .petroglyph-frames { animation: petroglyph-frames .84s steps(11), petroglyph-show .84s step-end; }
+.petroglyph-experiences.petroglyph-playing .petroglyph-frames { animation: petroglyph-frames 2.48s steps(30), petroglyph-show 2.48s step-end; }
+.petroglyph-routes.petroglyph-playing .petroglyph-still { animation: petroglyph-hide .84s step-end; }
+.petroglyph-experiences.petroglyph-playing .petroglyph-still { animation: petroglyph-hide 2.48s step-end; }
+
+@keyframes petroglyph-spin { to { transform: rotate(720deg); } }
+@keyframes petroglyph-squish {
+  0%, 100% { transform: scale(1); }
+  20% { transform: scale(1.2,.78); }
+  42% { transform: scale(.87,1.13); }
+  65% { transform: scale(1.08,.94); }
+  82% { transform: scale(.97,1.03); }
+}
+@keyframes petroglyph-sway {
+  0%, 100% { transform: rotate(0); }
+  15% { transform: rotate(-8deg); }
+  30% { transform: rotate(6deg); }
+  45% { transform: rotate(-5deg); }
+  60% { transform: rotate(4deg); }
+  75% { transform: rotate(-2deg); }
+}
+@keyframes petroglyph-frames { from { background-position: 0 0; } to { background-position: 100% 0; } }
+@keyframes petroglyph-show { from { opacity: 1; } to { opacity: 0; } }
+@keyframes petroglyph-hide { from { opacity: 0; } to { opacity: 1; } }
+
+.search-tab:focus-visible { outline: 2px solid #92734e; outline-offset: 3px; border-radius: 8px; }
+.mobile-category-tabs { display: none; }
+@media (max-width: 743px) {
+  .mobile-category-tabs { display: flex; justify-content: space-between; gap: 4px; margin: 12px 20px 0; }
+  .mobile-category-tabs .search-tab { flex-direction: column; min-width: 0; flex: 1; gap: 4px; min-height: 76px; font-size: 12px; }
+  .mobile-category-tabs .search-tab.active::after { bottom: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .petroglyph-icon.petroglyph-playing,
+  .petroglyph-icon.petroglyph-playing .petroglyph-still,
+  .petroglyph-icon.petroglyph-playing .petroglyph-frames { animation: none; }
+}
