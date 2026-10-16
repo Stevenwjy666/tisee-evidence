@@ -13,7 +13,7 @@
 项目路径：
 
 ```text
-<你的项目目录>
+C:\Users\34811\Documents\ChatGPT\ent西藏旅游网站
 ```
 
 技术栈：
@@ -1145,3 +1145,9 @@ PAYMENT_WEBHOOK_SECRET=
 新增 /drivers/[id]，推荐司机卡片链接到各自资料页，支持 8 个稳定 id，未知 id 返回 404。上方司机与旅途、车辆各一张大图和四张可切换缩略图，下方展示常跑路线整车报价、按天包车和电话/微信信息。共享司机数据在 src/lib/drivers.ts；路线、车型、价格与图片为 mock，联系方式留空待提供。当前没有司机与羊的真实合照，照片槽位可替换。后端后续提供司机相册、车辆相册、路线报价、包车日价、电话及微信资料。
 
 后端快速入口与新增司机接口字段见 BACKEND_QUICKSTART.md。
+
+## 2026-10-16 前端合同补充
+
+- 体验和周边已使用独立详情模板（src/components/catalog-detail.tsx），公共卡片数据移到 src/lib/catalog.ts。
+- 后端后续需提供体验集合时间/地点、参与要求、年龄与无障碍限制、商品尺寸/材质/颜色、配送与售后规则，替换当前待确认字段。
+- 搜索当前使用query/dates/adults/children/infants/elders URL参数，过滤本地目录；日期无真实库存过滤。房源容量为演示数据，接API后替换为经确认的maxGuests字段。

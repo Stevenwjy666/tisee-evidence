@@ -57,7 +57,7 @@ export default function GuideProfilePage() {
     <div className="guide-page">
       <header className="guide-header">
         <Link className="brand-link" href="/" aria-label="Tisee 西藏旅行首页">
-          <span className="brand-mark">T</span>
+          <Image className="brand-mark" src="/images/logo-white-background.webp" alt="" width={38} height={38} priority />
           <span className="brand-text">Tisee</span>
         </Link>
         <nav aria-label="向导页导航">

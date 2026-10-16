@@ -4,8 +4,8 @@
 
 ## 开发目录与浏览器约定
 
-- 日常开发、代码修改和启动目录统一为 `<你的项目目录>`。
-- `<原作者备份目录>` 不作为日常开发或启动目录。
+- 日常开发、代码修改和启动目录统一为 `C:\Users\34811\Documents\ChatGPT\ent西藏旅游网站`。
+- `D:\Desktop\西藏旅游网站` 不作为日常开发或启动目录。
 - 查看页面、预览新增界面以及编辑后的交互和布局检查，统一使用用户电脑上的 Microsoft Edge。
 - 不使用 Codex 右侧内置浏览器打开或预览本项目。
 - 先进入上述 C 盘目录执行 `npm run dev`，再在 Microsoft Edge 打开终端显示的本地地址（通常为 `http://localhost:3000`）。
@@ -15,7 +15,7 @@
 项目路径：
 
 ```text
-<你的项目目录>
+C:\Users\34811\Documents\ChatGPT\ent西藏旅游网站
 ```
 
 技术栈：Next.js 16 App Router、React 19、TypeScript strict、Tailwind CSS v4。
@@ -182,3 +182,11 @@ Invoke-RestMethod http://127.0.0.1:9222/json/list
 
 房源和路线详情顶部移除搜索框、语言圆形按钮与菜单按钮，改为对应岩画图标与分类名称，点击返回房源或路线列表。
 Edge 检查结束必须显式恢复真实窗口：Emulation.setDeviceMetricsOverride({width:0,height:0,deviceScaleFactor:0,mobile:false})，并将 pageScaleFactor 设为 1。仅 clearDeviceMetricsOverride 在本机曾遗留 1440px 渲染视口，实际窗口约1272px，导致页面整体右侧截断。真实窗口恢复后地图、内容和预订卡片边界正常。
+
+## 2026-10-16 搜索与商品详情更新
+
+- 手机搜索弹层通过 portal 渲染到 body，提供目的地、日期、人数与提交入口，不再受隐藏的桌面搜索容器影响。
+- 搜索读取 URL query/dates/人数参数，按分类和关键词筛选共享 catalog；房源人数使用演示容量。日期只记录意向，不按真实库存过滤。无结果显示提示并可清除条件。
+- 新增 src/lib/catalog.ts、src/lib/search.ts、src/components/catalog-detail.tsx。experience-* 与 service-* 使用对应的独立详情内容，缺失字段明确待确认，预约与购买只显示原型说明。
+- 新增 WebP：Logo 约11KB、岩画背景约168KB；原图保留，页面已切换引用。
+- npm run check 通过（measure-detail.mjs 仍有3条既有未使用变量警告）；8项搜索逻辑检查、11个详情HTTP请求及WebP资源请求通过。Edge 自动化被策略阻止，未完成浏览器视觉实测。

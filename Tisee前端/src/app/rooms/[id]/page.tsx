@@ -1,6 +1,9 @@
 import "@/components/tisee-detail-theme.css";
 import Image from "next/image";
 import Link from "next/link";
+import { notFound } from "next/navigation";
+import { experienceCards, serviceCards } from "@/lib/catalog";
+import { CatalogDetail } from "@/components/catalog-detail";
 
 type RouteDetail = {
   title: string;
@@ -134,6 +137,11 @@ const routePhotos = [
 
 export default async function RoomDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
+  if (id.startsWith("experience-") || id.startsWith("service-")) {
+    const item = [...experienceCards, ...serviceCards].find(item => item.id === id);
+    if (!item) notFound();
+    return <CatalogDetail item={item} />;
+  }
   const isRoute = id.startsWith("route-");
   const route = routeDetails[id] ?? routeDetails["route-0"];
 
@@ -173,7 +181,7 @@ function DetailHeader({ isRoute }: { isRoute: boolean }) {
   return (
     <header className="room-header room-simple-header">
       <Link className="brand-link" href="/" aria-label="Tisee 西藏旅行首页">
-        <span className="brand-mark">T</span>
+        <Image className="brand-mark" src="/images/logo-white-background.webp" alt="" width={38} height={38} priority />
         <span className="brand-text">Tisee</span>
       </Link>
       <Link className="room-category-link" href={isRoute ? "/routes" : "/homes"} aria-label={`返回${label}列表`}>

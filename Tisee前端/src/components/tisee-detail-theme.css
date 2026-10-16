@@ -9,7 +9,7 @@
   color: var(--color-text);
 }
 .room-page .room-header, .guide-page .guide-header {
-  background: linear-gradient(rgba(24,22,20,.82),rgba(24,22,20,.82)), url('/images/rock-texture.jpg') center / cover;
+  background: linear-gradient(rgba(24,22,20,.82),rgba(24,22,20,.82)), url('/images/rock-texture.webp') center / cover;
   border-bottom: 1px solid rgba(238,226,201,.12);
   box-shadow: inset 0 -8px 20px rgba(0,0,0,.12);
   color: #eee2c9;
