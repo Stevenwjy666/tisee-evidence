@@ -1,14 +1,18 @@
 # Website Reverse-Engineer Project
 
-## 团队开发约定
+## 开发目录与浏览器约定
 
-在自己克隆的项目目录开发和启动。使用 Node.js >=24；npm ci 安装锁定依赖，npm run dev 启动。页面验证使用 Microsoft Edge。原作者的 C/D 盘路径不约束组员。
+- 日常开发、代码修改和启动目录统一为 `C:\Users\34811\Documents\ChatGPT\ent西藏旅游网站`。
+- `D:\Desktop\西藏旅游网站` 不作为日常开发或启动目录。
+- 查看页面、预览新增界面以及编辑后的交互和布局检查，统一使用用户电脑上的 Microsoft Edge。
+- 不使用 Codex 右侧内置浏览器打开或预览本项目。
+- 先进入上述 C 盘目录执行 `npm run dev`，再在 Microsoft Edge 打开终端显示的本地地址（通常为 `http://localhost:3000`）。
 
 ## What This Is
 
 This is a local Next.js project for building an Airbnb-style travel discovery website. The target reference is `https://www.airbnb.cn/`, but the output must be an original local development prototype and must not impersonate Airbnb or reuse Airbnb trademarks, logos, protected copy, or proprietary imagery.
 
-This checkout contains the frontend and current handoff documents. Local-only research and personal tooling are excluded.
+The `clone-website` workflow has been added under `.codex/skills/clone-website/` for future inspection and refinement passes.
 
 ## Tech Stack
 
@@ -63,4 +67,4 @@ Use original Tibet travel content. Do not present the result as Airbnb official.
 
 - Existing user-authored files must be preserved unless the user explicitly asks to replace them.
 - If using the clone workflow later, prefer Edge browser collection when the extension is connected.
-- Backend collaborators should start with docs/BACKEND_QUICKSTART.md.
+- If browser automation is unavailable, use the existing `docs/research/airbnb-cn-homepage-research.md` document as the current source of truth.

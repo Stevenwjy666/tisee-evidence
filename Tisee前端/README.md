@@ -4,9 +4,13 @@
 
 当前项目仍是前端原型：没有真实后端、登录、数据库、支付、地图或消息系统。页面数据主要来自 React/TypeScript mock，后续会逐步接入真实 API。
 
-## 团队开发约定
+## 本机开发约定（仅适用于原作者电脑）
 
-在自己克隆的项目目录开发和启动。使用 Node.js >=24；npm ci 安装锁定依赖，npm run dev 启动。页面验证使用 Microsoft Edge。原作者的 C/D 盘路径不约束组员。
+- 日常开发、代码修改和启动目录统一为 `C:\Users\34811\Documents\ChatGPT\ent西藏旅游网站`。
+- `D:\Desktop\西藏旅游网站` 不作为日常开发或启动目录。
+- 查看页面、预览新增界面以及编辑后的交互和布局检查，统一使用用户电脑上的 Microsoft Edge。
+- 不使用 Codex 右侧内置浏览器打开或预览本项目。
+- 先进入上述 C 盘目录执行 `npm run dev`，再在 Microsoft Edge 打开终端显示的本地地址（通常为 `http://localhost:3000`）。
 
 ## 当前状态
 
